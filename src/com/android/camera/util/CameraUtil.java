@@ -125,6 +125,8 @@ public class CameraUtil {
 
     private static boolean sCancelAutoFocusOnPreviewStopped;
 
+    private static String[] sASDModes;
+
     // Fields for the show-on-maps-functionality
     private static final String MAPS_PACKAGE_NAME = "com.google.android.apps.maps";
     private static final String MAPS_CLASS_NAME = "com.google.android.maps.MapsActivity";
@@ -163,7 +165,12 @@ public class CameraUtil {
 
     public static boolean isAutoSceneDetectionSupported(Parameters params) {
         List<String> supported = params.getSupportedSceneModes();
-        return (supported != null) && supported.contains(SCENE_MODE_ASD) && (params.get("asd-mode") != null);
+        return (supported != null) && supported.contains(SCENE_MODE_ASD) &&
+                (sASDModes.length > 0 || (params.get("asd-mode") != null));
+    }
+
+    public static boolean useTimerForSceneDetection(Parameters params) {
+        return params.get("asd-mode") != null;
     }
 
     public static boolean isMeteringAreaSupported(Parameters params) {
@@ -226,6 +233,7 @@ public class CameraUtil {
         sSamsungHDRFormat = context.getResources().getBoolean(R.bool.needsSamsungHDRFormat);
         sSamsungCamMode = context.getResources().getBoolean(R.bool.needsSamsungCamMode);
         sHTCCamMode = context.getResources().getBoolean(R.bool.needsHTCCamMode);
+        sASDModes = context.getResources().getStringArray(R.array.asdModes);
     }
 
     public static int dpToPixel(int dp) {
@@ -1127,5 +1135,21 @@ public class CameraUtil {
             ret = ret + "\t" + elems[i].toString() + '\n';
         }
         return ret;
+    }
+
+    /**
+     * Fast conversion of byte array to integer
+     *
+     * @param array of types
+     * @param index into the arary
+     * @return integer value
+     */
+    public static int byteArrayToInt(byte[] encodedValue, int offset) {
+        int index = offset;
+        int value = encodedValue[index++] & 0xFF;
+        value ^= (encodedValue[index++] & 0xFF) << Byte.SIZE * 1;
+        value ^= (encodedValue[index++] & 0xFF) << Byte.SIZE * 2;
+        value ^= (encodedValue[index++] & 0xFF) << Byte.SIZE * 3;
+        return value;
     }
 }
